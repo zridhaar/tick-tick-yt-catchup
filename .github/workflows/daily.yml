@@ -1,70 +1,34 @@
-name: Daily YouTube Catchup
+name: Debug Workflow
 
 on:
   workflow_dispatch:
 
-  schedule:
-    # 7:00 PM IST = 1:30 PM UTC
-    - cron: "30 13 * * *"
-
 jobs:
-  run-script:
+  debug:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Show Repository Structure
+      - name: Show current directory
         run: |
-          echo "Current Directory:"
+          echo "PWD:"
           pwd
 
           echo ""
-          echo "Files:"
+          echo "FILES:"
           ls -la
 
           echo ""
-          echo "Repository Tree:"
-          find . -maxdepth 3 -type f
+          echo "RECURSIVE:"
+          find .
 
-      - name: Verify Files
+      - name: Check requirements
         run: |
-          if [ -f "./requirements.txt" ]; then
-            echo "✅ requirements.txt found"
+          if [ -f requirements.txt ]; then
+            echo "requirements.txt exists"
+            cat requirements.txt
           else
-            echo "❌ requirements.txt NOT FOUND"
+            echo "requirements.txt NOT FOUND"
+            exit 1
           fi
-
-          if [ -f "./rss_test.py" ]; then
-            echo "✅ rss_test.py found"
-          else
-            echo "❌ rss_test.py NOT FOUND"
-          fi
-
-          if [ -f "./youtube_channels.txt" ]; then
-            echo "✅ youtube_channels.txt found"
-          else
-            echo "❌ youtube_channels.txt NOT FOUND"
-          fi
-
-      - name: Install Dependencies
-        run: |
-          python --version
-          python -m pip install --upgrade pip
-          python -m pip install -r ./requirements.txt
-
-      - name: Show Installed Packages
-        run: |
-          python -m pip list
-
-      - name: Run Script
-        env:
-          TICKTICK_ACCESS_TOKEN: ${{ secrets.TICKTICK_ACCESS_TOKEN }}
-        run: |
-          python -u rss_test.py
