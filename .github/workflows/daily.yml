@@ -20,43 +20,50 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Show Environment
+      - name: Show Repository Structure
         run: |
           echo "Current Directory:"
           pwd
 
           echo ""
-          echo "Repository Files:"
+          echo "Files:"
           ls -la
 
           echo ""
-          echo ".github Folder:"
-          ls -R .github || true
+          echo "Repository Tree:"
+          find . -maxdepth 3 -type f
 
-          echo ""
-          echo "Python Version:"
-          python --version
+      - name: Verify Files
+        run: |
+          if [ -f "./requirements.txt" ]; then
+            echo "✅ requirements.txt found"
+          else
+            echo "❌ requirements.txt NOT FOUND"
+          fi
 
-          echo ""
-          echo "Pip Version:"
-          pip --version
+          if [ -f "./rss_test.py" ]; then
+            echo "✅ rss_test.py found"
+          else
+            echo "❌ rss_test.py NOT FOUND"
+          fi
+
+          if [ -f "./youtube_channels.txt" ]; then
+            echo "✅ youtube_channels.txt found"
+          else
+            echo "❌ youtube_channels.txt NOT FOUND"
+          fi
 
       - name: Install Dependencies
         run: |
+          python --version
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r ./requirements.txt
 
       - name: Show Installed Packages
         run: |
-          pip list
+          python -m pip list
 
-      - name: Verify Required Files
-        run: |
-          test -f rss_test.py && echo "✓ rss_test.py found"
-          test -f youtube_channels.txt && echo "✓ youtube_channels.txt found"
-          test -f requirements.txt && echo "✓ requirements.txt found"
-
-      - name: Run Python Script
+      - name: Run Script
         env:
           TICKTICK_ACCESS_TOKEN: ${{ secrets.TICKTICK_ACCESS_TOKEN }}
         run: |
