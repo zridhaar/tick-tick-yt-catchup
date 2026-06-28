@@ -1,34 +1,66 @@
-name: Debug Workflow
+name: Daily YouTube Catchup
 
 on:
   workflow_dispatch:
 
+  schedule:
+    # 7:00 PM IST = 1:30 PM UTC
+    - cron: "30 13 * * *"
+
 jobs:
-  debug:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Show current directory
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Show Working Directory
         run: |
-          echo "PWD:"
+          echo "Current Directory:"
           pwd
 
           echo ""
-          echo "FILES:"
+          echo "Files in current directory:"
           ls -la
 
           echo ""
-          echo "RECURSIVE:"
+          echo "Repository tree:"
           find .
 
-      - name: Check requirements
+      - name: Install Dependencies
         run: |
-          if [ -f requirements.txt ]; then
-            echo "requirements.txt exists"
+          python -m pip install --upgrade pip
+
+          if [ -f "requirements.txt" ]; then
+            echo "requirements.txt found"
             cat requirements.txt
+            python -m pip install -r requirements.txt
           else
-            echo "requirements.txt NOT FOUND"
-            exit 1
+            echo "requirements.txt NOT FOUND!"
+            echo "Installing packages manually..."
+            python -m pip install requests feedparser yt-dlp
           fi
+
+      - name: Show Installed Packages
+        run: |
+          python -m pip list
+
+      - name: Verify Project Files
+        run: |
+          echo "Checking project files..."
+
+          test -f rss_test.py && echo "✓ rss_test.py found" || echo "✗ rss_test.py missing"
+          test -f youtube_channels.txt && echo "✓ youtube_channels.txt found" || echo "✗ youtube_channels.txt missing"
+          test -f requirements.txt && echo "✓ requirements.txt found" || echo "✗ requirements.txt missing"
+
+      - name: Run Python Script
+        env:
+          TICKTICK_ACCESS_TOKEN: ${{ secrets.TICKTICK_ACCESS_TOKEN }}
+        run: |
+          python -u rss_test.py
